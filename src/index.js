@@ -39,11 +39,11 @@ const machine = Machine({
 //         )
 // }
 
-let lastAction = { type: null };
-function hasActionChanged(action) {
-    console.log(lastAction, action)
-    if (action.type != lastAction.type) {
-        lastAction = action;
+let lastStatechart = {};
+function hasStatchartChanged(state) {
+    const currentStatechart = getStatechart(state);
+    if (!matchesState(lastStatechart, currentStatechart)) {
+        lastStatechart = currentStatechart;
         return true;
     } else {
         return false;
@@ -51,7 +51,7 @@ function hasActionChanged(action) {
 }
 function handleStatechartsEffects(action$, store) {
     return action$
-        .filter(hasActionChanged)
+        .filter(action => hasStatchartChanged(store.getState()))
         .mergeMap(() => {
             const state = store.getState();
             // const statechart = getStatechart(state);
