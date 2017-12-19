@@ -30,48 +30,14 @@ const machine = Machine({
     }
 });
 
-// function handleFetchDataRequest(action$, store, { ajax }) {
-//     return action$.ofType('FETCH_DATA_REQUEST')
-//         .mergeMap(action =>
-//             ajax('http://foo.com')
-//                 .mapTo({ type: 'FETCH_DATA_SUCCESS' })
-//                 .takeUntil(action$.ofType('FETCH_DATA_CANCEL'))
-//         )
-// }
-
-let lastStatechart = {};
-function hasStatchartChanged(state) {
-    const currentStatechart = getStatechart(state);
-    if (!matchesState(lastStatechart, currentStatechart)) {
-        lastStatechart = currentStatechart;
-        return true;
-    } else {
-        return false;
-    }
-}
-function handleStatechartsEffects(action$, store) {
-    return action$
-        .filter(action => hasStatchartChanged(store.getState()))
-        .mergeMap(() => {
-            const state = store.getState();
-            // const statechart = getStatechart(state);
-            // first run exits
-            const exitArr = (getStatechartExit(state) || [])
-                .map(action => ({ type: action }))
-
-            // not supporting onTransition for now
-
-            // then run enters
-            const entryArr = (getStatechartEntry(state) || [])
-                .map(action => ({ type: action }))
-
-            console.log(exitArr, entryArr)
-
-            return Observable.of(
-                ...exitArr,
-                ...entryArr
-            )
-        })
+function handleFetchDataRequest(action$, store) {
+    return action$.ofType('FETCH_DATA_REQUEST')
+        .mergeMap(action =>
+            Observable.of(null)
+                .delay(5000)
+                .mapTo({ type: 'FETCH_DATA_SUCCESS' })
+                .takeUntil(action$.ofType('FETCH_DATA_CANCEL'))
+        )
 }
 
 function getStatechartValue(state) {
@@ -92,25 +58,51 @@ function getStatechartEntry(state) {
 function statechartReducer(state = machine.initial, action) {
     const nextState = machine.transition(state, action.type);
     if (nextState) {
-        nextState.history = null; // XXX history blows out of proportions
-        return nextState;
+        return nextState.value;
     } else {
         return state;
     }
 }
 
 const rootEpic = combineEpics(
-    handleStatechartsEffects
+    handleFetchDataRequest
 )
 
 const epicMiddleware = createEpicMiddleware(rootEpic);
+
+const statechartsMiddleware = store => next => action => {
+    const state = store.getState();
+    const statechart = getStatechart(state)
+    const nextMachine = machine.transition(statechart, action.type);
+
+    if (!nextMachine) {
+        return next(action);
+    }
+
+    // run exists
+    nextMachine.effects.exit.forEach(actionType =>
+        store.dispatch({ type: actionType })
+    )
+
+    // not supporting onTransition for now
+
+    // then run enters
+    nextMachine.effects.entry.forEach(actionType =>
+        store.dispatch({ type: actionType })
+    )
+
+    return next(action);
+}
 
 const rootReducer = combineReducers({
     statechart: statechartReducer
 });
 const store = createStore(
     rootReducer,
-    applyMiddleware(epicMiddleware)
+    applyMiddleware(
+        statechartsMiddleware,
+        epicMiddleware
+    )
 );
 
 const rootEl = document.getElementById('root')
@@ -121,7 +113,6 @@ const render = () => {
       <div>
           {JSON.stringify(store.getState())}
           <br />
-
 
           <button onClick={() => store.dispatch({ type: 'FETCH_DATA_CLICKED' })}>fetch data</button>
           <button onClick={() => store.dispatch({ type: 'FETCH_DATA_CANCEL' })}>cancel</button>
