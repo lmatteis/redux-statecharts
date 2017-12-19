@@ -23,9 +23,10 @@ const machine = Machine({
             on: {
                 FETCH_DATA_SUCCESS: 'Init.ShowData',
                 FETCH_DATA_FAILURE: 'Init.Error',
-                FETCH_DATA_CANCEL: 'Init.NoData',
+                CLICKED_CANCEL: 'Init.NoData',
             },
             onEntry: 'FETCH_DATA_REQUEST',
+            onExit: 'FETCH_DATA_CANCEL',
         },
     }
 });
@@ -115,7 +116,7 @@ const render = () => {
           <br />
 
           <button onClick={() => store.dispatch({ type: 'FETCH_DATA_CLICKED' })}>fetch data</button>
-          <button onClick={() => store.dispatch({ type: 'FETCH_DATA_CANCEL' })}>cancel</button>
+          <button onClick={() => store.dispatch({ type: 'CLICKED_CANCEL' })}>cancel</button>
       </div>,
       rootEl
   )
