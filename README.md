@@ -41,7 +41,7 @@ export const statechartMiddleware = store => next => (action) => {
   const state = store.getState()
   const currentStatechart = state.statechart // this has to match the location where you mount your reducer
 
-  const nextMachine = machine.transition(currentStatechart, action.type)
+  const nextMachine = machine.transition(currentStatechart, action)
 
   const result = next(action)
 
@@ -59,7 +59,7 @@ The statechart reducer (to save the current state information)
 
 ```js
 export function statechartReducer(state = machine.initialState, action) {
-  const nextState = machine.transition(state, action.type)
+  const nextState = machine.transition(state, action)
   if (nextState) {
     return nextState.value
   }
