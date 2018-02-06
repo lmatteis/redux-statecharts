@@ -39,7 +39,7 @@ The Redux middleware
 ```js
 export const statechartMiddleware = store => next => (action) => {
   const state = store.getState()
-  const currentStatechart = getStatechart(state)
+  const currentStatechart = state.statechart // this has to match the location where you mount your reducer
 
   const nextMachine = machine.transition(currentStatechart, action.type)
 
