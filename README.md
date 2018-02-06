@@ -24,9 +24,11 @@ const statechart = {
 
 ## Step 2
 
-Create the machine object
+Import `xstate` and create the machine object
 
 ```js
+import { Machine } from 'xstate' // yarn add xstate
+
 const machine = Machine(statechart)
 ```
 
