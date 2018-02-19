@@ -24,7 +24,7 @@ const statechart = {
 
 ## Step 2
 
-Import `xstate` and create the machine object
+Install xstate `yarn add xstate` and create the machine object
 
 ```js
 import { Machine } from 'xstate' // yarn add xstate
@@ -37,6 +37,8 @@ const machine = Machine(statechart)
 The Redux middleware
 
 ```js
+const UPDATE = '@@statechart/UPDATE'
+
 export const statechartMiddleware = store => next => (action) => {
   const state = store.getState()
   const currentStatechart = state.statechart // this has to match the location where you mount your reducer
@@ -49,6 +51,14 @@ export const statechartMiddleware = store => next => (action) => {
   nextMachine.actions.forEach(actionType =>
     store.dispatch({ type: actionType, payload: action.payload }))
 
+  // save current statechart
+  if (nextMachine && action.type !== UPDATE) {
+    if (nextMachine.history !== undefined) {
+      // if there's a history, it means a transition happened
+      store.dispatch({ type: UPDATE, payload: nextMachine.value })
+    }
+  }
+
   return result
 }
 ```
@@ -59,9 +69,8 @@ The statechart reducer (to save the current state information)
 
 ```js
 export function statechartReducer(state = machine.initialState, action) {
-  const nextState = machine.transition(state, action)
-  if (nextState) {
-    return nextState.value
+  if (action.type === UPDATE) {
+    return action.payload
   }
   return state
 }
