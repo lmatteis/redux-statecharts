@@ -2,9 +2,16 @@
 
 To use this please check out my article https://medium.freecodecamp.org/how-to-model-the-behavior-of-redux-apps-using-statecharts-5e342aad8f66 and the xstate project: https://github.com/davidkpiano/xstate
 
-## Step 1
+* [Install](#install)
+  * [Create your statechart JSON](#create-your-statechart-json)
+  * [Install xstate](#install-xstate)
+  * [The Redux middleware](#the-redux-middleware)
+  * [Reducer](#reducer)
+  * [Finally put everything together](#finally-put-everything-together)
 
-Create your statechart JSON
+# Install
+
+## Create your statechart JSON
 
 ```js
 const statechart = {
@@ -22,7 +29,7 @@ const statechart = {
 }
 ```
 
-## Step 2
+## Install xstate
 
 Install xstate `yarn add xstate` and create the machine object
 
@@ -32,9 +39,7 @@ import { Machine } from 'xstate' // yarn add xstate
 const machine = Machine(statechart)
 ```
 
-## Step 3
-
-The Redux middleware
+## The Redux middleware
 
 ```js
 const UPDATE = '@@statechart/UPDATE'
@@ -63,9 +68,7 @@ export const statechartMiddleware = store => next => (action) => {
 }
 ```
 
-## Step 4
-
-The statechart reducer (to save the current state information)
+## Reducer
 
 ```js
 export function statechartReducer(state = machine.initialState, action) {
@@ -76,9 +79,7 @@ export function statechartReducer(state = machine.initialState, action) {
 }
 ```
 
-## Step 5
-
-Finally put everything together
+## Finally put everything together
 
 ```js
 const rootReducer = combineReducers({
