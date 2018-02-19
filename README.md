@@ -108,7 +108,7 @@ It makes sense to separate your states into specific folders, and have each fold
 
 For instance, imagine this statechart example:
 
-```json
+```js
 {
   initial: 'Init',
   states: {
