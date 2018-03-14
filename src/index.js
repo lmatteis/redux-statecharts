@@ -71,6 +71,7 @@ const rootEpic = combineEpics(
 
 const epicMiddleware = createEpicMiddleware(rootEpic);
 
+const UPDATE = '@@statechart/UPDATE';
 const statechartsMiddleware = store => next => action => {
     const state = store.getState();
     const statechart = getStatechart(state)
@@ -80,17 +81,19 @@ const statechartsMiddleware = store => next => action => {
         return next(action);
     }
 
-    // run exists
-    nextMachine.effects.exit.forEach(actionType =>
-        store.dispatch({ type: actionType })
-    )
+    // run actions
+    if(nextMachine.actions.length > 0) {
+        nextMachine.actions.forEach(actionType =>
+            store.dispatch({ type: actionType, payload: action.payload }))
 
-    // not supporting onTransition for now
-
-    // then run enters
-    nextMachine.effects.entry.forEach(actionType =>
-        store.dispatch({ type: actionType })
-    )
+          // save current statechart
+          if (nextMachine && action.type !== UPDATE) {
+            if (nextMachine.history !== undefined) {
+              // if there's a history, it means a transition happened
+              store.dispatch({ type: UPDATE, payload: nextMachine.value })
+            }
+          }
+        }
 
     return next(action);
 }
